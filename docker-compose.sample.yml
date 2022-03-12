@@ -2,7 +2,6 @@ version: "3.9"
 services:
   app:
     image: sibbl/matrix-bot-media-fetcher
-    build: .
     environment:
       HOMESERVER_URL: https://matrix.org
       ACCESS_TOKEN: ""
