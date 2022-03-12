@@ -49,7 +49,7 @@ async function handleCommand(roomId, event) {
   }
   const cleanRoomId = sanitize(roomId.substring(1), { replacement: "_" });
   const targetDirectory = join(outputDirectory, cleanRoomId);
-  if (!existsSync(targetDirectory)) mkdirSync(targetDirectory);
+  ensurePathExists(targetDirectory);
   const filename = getFileNameFromContent(event);
   console.info(`Downloading ${cleanRoomId}/${filename}...`);
   const targetFilePath = findUniqueFilename(targetDirectory, filename);
