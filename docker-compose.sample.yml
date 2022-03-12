@@ -1,0 +1,12 @@
+version: "3.9"
+services:
+  app:
+    image: sibbl/matrix-bot-media-fetcher
+    build: .
+    environment:
+      HOMESERVER_URL: https://matrix.org
+      ACCESS_TOKEN: ""
+      OUTPUT_PATH: /home/data
+      # MSG_TYPES: m.image,m.video,m.audio,m.file
+    volumes:
+      - ./data:/home/data

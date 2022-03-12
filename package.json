@@ -1,0 +1,14 @@
+{
+  "name": "matrix-bot-media-fetcher",
+  "version": "1.0.0",
+  "description": "A Matrix bot which downloads all media from the rooms it's invited to.",
+  "main": "index.js",
+  "type": "module",
+  "author": "sibbl",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "matrix-bot-sdk": "^0.5.19",
+    "sanitize-filename": "^1.6.3"
+  }
+}
