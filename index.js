@@ -56,9 +56,7 @@ async function handleCommand(roomId, event) {
   const targetFilePath = findUniqueFilename(targetDirectory, filename);
   const { data } = await client.downloadContent(event.content.url);
   writeFileSync(targetFilePath, data);
-  utimes(targetFilePath, {
-    btime: event.origin_server_ts
-  });
+  utimes(targetFilePath, event.origin_server_ts);
 }
 
 function getFileNameFromContent(event) {
