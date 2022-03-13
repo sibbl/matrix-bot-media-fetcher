@@ -8,6 +8,7 @@ import {
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join, basename, extname } from "path";
 import sanitize from "sanitize-filename";
+import { utimes } from "utimes";
 
 const homeserverUrl = process.env.HOMESERVER_URL;
 const accessToken = process.env.ACCESS_TOKEN;
@@ -55,6 +56,9 @@ async function handleCommand(roomId, event) {
   const targetFilePath = findUniqueFilename(targetDirectory, filename);
   const { data } = await client.downloadContent(event.content.url);
   writeFileSync(targetFilePath, data);
+  utimes(targetFilePath, {
+    btime: event.origin_server_ts
+  });
 }
 
 function getFileNameFromContent(event) {

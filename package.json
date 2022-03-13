@@ -9,6 +9,7 @@
   "dependencies": {
     "dotenv": "^16.0.0",
     "matrix-bot-sdk": "^0.5.19",
-    "sanitize-filename": "^1.6.3"
+    "sanitize-filename": "^1.6.3",
+    "utimes": "^4.1.1"
   }
 }

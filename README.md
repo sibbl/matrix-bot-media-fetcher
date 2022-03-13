@@ -9,7 +9,8 @@ It will be tried to keep the original filename received by Matrix, but there mig
 ## Quick start
 
 1. Option A: run via Node.js:
-   1. Configure your .env file (see details below)
+   1. Copy/rename `.env.sample` to `.env`
+   1. Configure the environment variables in this file (see details below)
    1. Run `node index.js`
 1. Option B: run via Docker Compose:
    1. Copy/rename `docker-compose.sample.yml` to `docker-compose.yml`
