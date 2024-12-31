@@ -8,8 +8,9 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.0.0",
-    "matrix-bot-sdk": "^0.5.19",
+    "matrix-bot-sdk": "^0.7.1",
+    "matrix-js-sdk": "^35.1.0",
     "sanitize-filename": "^1.6.3",
-    "utimes": "^4.1.1"
+    "utimes": "^5.2.1"
   }
 }

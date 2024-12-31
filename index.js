@@ -5,6 +5,7 @@ import {
   AutojoinRoomsMixin,
   AutojoinUpgradedRoomsMixin
 } from "matrix-bot-sdk";
+import * as sdk from "matrix-js-sdk";
 import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join, basename, extname } from "path";
 import sanitize from "sanitize-filename";
@@ -36,6 +37,8 @@ AutojoinUpgradedRoomsMixin.setupOnClient(client);
 client.on("room.message", handleCommand);
 client.start().then(() => console.info("Bot started!"));
 
+const sdkClient = sdk.createClient({ baseUrl: homeserverUrl });
+
 async function handleCommand(roomId, event) {
   const msgType = event.content?.msgtype;
   if (event.content?.url === undefined) {
@@ -51,10 +54,44 @@ async function handleCommand(roomId, event) {
   const cleanRoomId = sanitize(roomId.substring(1), { replacement: "_" });
   const targetDirectory = join(outputDirectory, cleanRoomId);
   ensurePathExists(targetDirectory);
-  const filename = getFileNameFromContent(event);
+
+  const mxc = event.content.url.replace("mxc://", "");
+  const [_, mediaId] = mxc.split("/");
+  const eventFilename = getFileNameFromContent(event);
+  const ext = extname(eventFilename);
+  const prefix = formatTimestamp(event.origin_server_ts);
+  const filename = `${prefix}_${mediaId}${ext}`;
+
   console.info(`Downloading ${cleanRoomId}/${filename}...`);
+
   const targetFilePath = findUniqueFilename(targetDirectory, filename);
-  const { data } = await client.downloadContent(event.content.url);
+
+  let data = null;
+  try {
+    // we need to use the sdkClient because the bot-sdk doesn't support authenticated downloads (yet?)
+    const downloadUrl = sdkClient.mxcUrlToHttp(
+      /*mxcUrl=*/ event.content.url, // the MXC URI to download/thumbnail, typically from an event or profile
+      /*width=*/ undefined, // part of the thumbnail API. Use as required.
+      /*height=*/ undefined, // part of the thumbnail API. Use as required.
+      /*resizeMethod=*/ undefined, // part of the thumbnail API. Use as required.
+      /*allowDirectLinks=*/ false, // should generally be left `false`.
+      /*allowRedirects=*/ true, // implied supported with authentication
+      /*useAuthentication=*/ true // the flag we're after in this example
+    );
+    const mediaRes = await fetch(downloadUrl, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    data = Buffer.from(await mediaRes.arrayBuffer());
+  } catch (e) {
+    console.error(
+      `Error downloading ${event.content.url} from ${roomId}`,
+      e?.toJson?.() || e
+    );
+    return;
+  }
+
   writeFileSync(targetFilePath, data);
   utimes(targetFilePath, event.origin_server_ts);
 }
@@ -87,4 +124,14 @@ function findUniqueFilename(dir, filename) {
     if (!existsSync(fullpath)) return fullpath;
     ++i;
   }
+}
+
+function formatTimestamp(ts) {
+  const d = new Date(ts);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}_${hh}_${min}`;
 }
