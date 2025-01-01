@@ -6,10 +6,11 @@ import {
   AutojoinUpgradedRoomsMixin
 } from "matrix-bot-sdk";
 import * as sdk from "matrix-js-sdk";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
-import { join, basename, extname } from "path";
+import { writeFileSync } from "fs";
+import { join, extname } from "path";
 import sanitize from "sanitize-filename";
 import { utimes } from "utimes";
+import { formatTimestamp, ensurePathExists, getFileNameFromContent } from "./shared.js";
 
 const homeserverUrl = process.env.HOMESERVER_URL;
 const accessToken = process.env.ACCESS_TOKEN;
@@ -64,7 +65,7 @@ async function handleCommand(roomId, event) {
 
   console.info(`Downloading ${cleanRoomId}/${filename}...`);
 
-  const targetFilePath = findUniqueFilename(targetDirectory, filename);
+  const targetFilePath = join(targetDirectory, filename);
 
   let data = null;
   try {
@@ -94,44 +95,4 @@ async function handleCommand(roomId, event) {
 
   writeFileSync(targetFilePath, data);
   utimes(targetFilePath, event.origin_server_ts);
-}
-
-function getFileNameFromContent(event) {
-  if (event.content?.filename) return event.content.filename;
-  if (event.content?.body) return event.content.body;
-
-  const timestamp = event.origin_server_ts;
-  if (event.content?.info?.mimetype) {
-    const mimeTypeParts = event.content.info.mimetype.split("/");
-    return timestamp + "." + mimeTypeParts[mimeTypeParts.length - 1];
-  }
-  return timestamp;
-}
-
-function ensurePathExists(p) {
-  if (!existsSync(p)) mkdirSync(p);
-}
-
-function findUniqueFilename(dir, filename) {
-  let fullpath = join(dir, filename);
-  if (!existsSync(fullpath)) return fullpath;
-  let i = 2;
-  const ext = extname(filename);
-  const base = basename(filename, ext);
-  while (true) {
-    filename = base + "_" + i + ext;
-    fullpath = join(dir, filename);
-    if (!existsSync(fullpath)) return fullpath;
-    ++i;
-  }
-}
-
-function formatTimestamp(ts) {
-  const d = new Date(ts);
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const hh = String(d.getHours()).padStart(2, "0");
-  const min = String(d.getMinutes()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}_${hh}_${min}`;
 }
